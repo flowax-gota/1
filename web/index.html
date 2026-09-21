@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electronic Sandbox - 3D Circuit Constructor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eee;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        #canvas-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+        
+        canvas {
+            display: block;
+        }
+        
+        #ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        #toolbar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(30, 30, 50, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            pointer-events: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        #toolbar h3 {
+            margin-bottom: 10px;
+            color: #4fc3f7;
+            font-size: 16px;
+        }
+        
+        .tool-btn {
+            display: block;
+            width: 100%;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .tool-btn:hover {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            transform: translateX(5px);
+        }
+        
+        .tool-btn.active {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        }
+        
+        #info-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(30, 30, 50, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 250px;
+            pointer-events: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        #info-panel h3 {
+            margin-bottom: 10px;
+            color: #4fc3f7;
+            font-size: 16px;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-label {
+            color: #aaa;
+        }
+        
+        .stat-value {
+            color: #4fc3f7;
+            font-weight: bold;
+        }
+        
+        #controls-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 30, 50, 0.9);
+            border-radius: 10px;
+            padding: 15px 25px;
+            pointer-events: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        
+        .key {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin: 0 3px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        #status-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(20, 20, 35, 0.95);
+            padding: 8px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #2ecc71;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        #component-palette {
+            position: absolute;
+            bottom: 50px;
+            left: 20px;
+            background: rgba(30, 30, 50, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            pointer-events: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        
+        .palette-item {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .palette-item:hover {
+            border-color: #4fc3f7;
+            transform: scale(1.1);
+        }
+        
+        .palette-item span {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .palette-item small {
+            font-size: 9px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="ui-overlay">
+            <!-- Toolbar -->
+            <div id="toolbar">
+                <h3>🔧 Tools</h3>
+                <button class="tool-btn active" data-tool="select">↖ Select</button>
+                <button class="tool-btn" data-tool="place">➕ Place Component</button>
+                <button class="tool-btn" data-tool="wire">〰️ Create Wire</button>
+                <button class="tool-btn" data-tool="delete">🗑️ Delete</button>
+                <button class="tool-btn" data-tool="chip">📦 Create Chip</button>
+                <button class="tool-btn" data-tool="test">▶️ Test Circuit</button>
+            </div>
+            
+            <!-- Info Panel -->
+            <div id="info-panel">
+                <h3>📊 Statistics</h3>
+                <div class="stat-row">
+                    <span class="stat-label">Components:</span>
+                    <span class="stat-value" id="stat-components">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Wires:</span>
+                    <span class="stat-value" id="stat-wires">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Chips:</span>
+                    <span class="stat-value" id="stat-chips">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">FPS:</span>
+                    <span class="stat-value" id="stat-fps">60</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Simulation:</span>
+                    <span class="stat-value" id="stat-sim">Running</span>
+                </div>
+            </div>
+            
+            <!-- Component Palette -->
+            <div id="component-palette">
+                <h3 style="margin-bottom: 10px; color: #4fc3f7; font-size: 14px;">Components</h3>
+                <div class="palette-grid">
+                    <div class="palette-item" data-type="and">
+                        <span>&</span>
+                        <small>AND</small>
+                    </div>
+                    <div class="palette-item" data-type="or">
+                        <span>≥1</span>
+                        <small>OR</small>
+                    </div>
+                    <div class="palette-item" data-type="not">
+                        <span>1</span>
+                        <small>NOT</small>
+                    </div>
+                    <div class="palette-item" data-type="xor">
+                        <span>=1</span>
+                        <small>XOR</small>
+                    </div>
+                    <div class="palette-item" data-type="switch">
+                        <span>⏻</span>
+                        <small>Switch</small>
+                    </div>
+                    <div class="palette-item" data-type="led">
+                        <span>💡</span>
+                        <small>LED</small>
+                    </div>
+                    <div class="palette-item" data-type="monitor">
+                        <span>📺</span>
+                        <small>Display</small>
+                    </div>
+                    <div class="palette-item" data-type="clock">
+                        <span>⏱️</span>
+                        <small>Clock</small>
+                    </div>
+                    <div class="palette-item" data-type="chip">
+                        <span>🔲</span>
+                        <small>Chip</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Controls Hint -->
+            <div id="controls-hint">
+                <span class="key">WASD</span> Move Camera | 
+                <span class="key">Mouse</span> Rotate View | 
+                <span class="key">Scroll</span> Zoom | 
+                <span class="key">R</span> Reset View | 
+                <span class="key">Space</span> Pause/Resume
+            </div>
+            
+            <!-- Status Bar -->
+            <div id="status-bar">
+                <div class="status-item">
+                    <div class="status-indicator"></div>
+                    <span>Simulation Active</span>
+                </div>
+                <div class="status-item">
+                    <span id="status-message">Ready to build circuits!</span>
+                </div>
+                <div class="status-item">
+                    <span>Electronic Sandbox v1.0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

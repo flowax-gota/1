@@ -1,24 +1,115 @@
-# 3D Электронный Конструктор / Sandbox Game
+# Electronic Sandbox Game - 3D Circuit Constructor
 
-Инновационная песочница, позволяющая создавать сложные электронные схемы, соединять компоненты проводами и моделировать всё это в полноценном 3D-пространстве с проработанной симуляцией физики и логики.
+## Overview
+High-performance 3D electronic constructor/sandbox game with real-time circuit simulation.
 
-## 🎮 Описание проекта
-Основная идея игры — дать игроку полную свободу в создании электроники любого масштаба. Вы можете собирать как простые цепи, так и проектировать полноценные вычислительные системы внутри виртуального мира. 
+## Recommended Language: **C++**
 
-## 🔥 Ключевые возможности (Большой функционал)
+### Why C++?
+1. **Maximum Performance**: Critical for simulating hundreds/thousands of logic gates simultaneously
+2. **Memory Control**: Fine-grained control over memory allocation for large circuit networks
+3. **Game Engine Integration**: Easy integration with Unreal Engine, Unity (via plugins), or custom engines
+4. **Multithreading**: Excellent support for parallel circuit simulation
+5. **Industry Standard**: Most high-performance games use C++ for core systems
 
-* **Полная свобода в 3D:** Стройте корпуса, размещайте компоненты и прокладывайте провода в трехмерном пространстве без ограничений.
-* **Глубокая симуляция электроники:** От простых светодиодов и батареек до сложных логических элементов.
-* **Создание микросхем (Чипов):** Объединяйте огромные и громоздкие схемы в компактные кастомные чипы, чтобы использовать их повторно и экономить место.
-* **Интерактивные мониторы:** Подключайте экраны к вашим схемам и выводите на них текстовую или графическую информацию.
-* **Программирование логики:** Настраивайте поведение созданных устройств для реализации продвинутых механизмов.
+## Architecture Layers
 
-## 🛠️ Технологический стек
-Проект разрабатывается с прицелом на максимальную производительность и гибкость:
-* **Язык программирования:** На выбор (поддерживается интеграция с современными игровыми движками и скриптовыми языками).
-* **Графика:** Полноценный 3D-движок для плавной отрисовки сотен одновременно работающих компонентов.
+```
+┌─────────────────────────────────────────┐
+│         Presentation Layer              │
+│  (Web UI / Game Engine Interface)       │
+├─────────────────────────────────────────┤
+│         Component System                │
+│  (Gates, Chips, Wires, Monitors)        │
+├─────────────────────────────────────────┤
+│         Simulation Core                 │
+│  (Signal Propagation, Circuit Solver)   │
+├─────────────────────────────────────────┤
+│         Data Layer                      │
+│  (Component Storage, Network Graph)     │
+└─────────────────────────────────────────┘
+```
 
-## 🚀 Планы по развитию
-1. Разработка удобного интерфейса для быстрого соединения контактов проводами.
-2. Создание библиотеки готовых электронных компонентов.
-3. Оптимизация логических цепочек для стабильной работы больших схем.
+## Project Structure
+
+```
+/workspace
+├── src/
+│   ├── core/
+│   │   ├── Component.h          # Base component class
+│   │   ├── Component.cpp
+│   │   ├── Pin.h                # Input/output pins
+│   │   ├── Pin.cpp
+│   │   └── Wire.h               # Wire connections
+│   ├── components/
+│   │   ├── LogicGate.h          # AND, OR, NOT, etc.
+│   │   ├── Chip.h               # Custom chip container
+│   │   └── Monitor.h            # Display component
+│   ├── simulation/
+│   │   ├── CircuitSimulator.h   # Main simulation engine
+│   │   └── SignalPropagation.cpp
+│   └── main.cpp                 # Entry point
+├── web/
+│   ├── index.html               # 3D Web Interface
+│   └── game.js                  # Three.js visualization
+└── README.md
+```
+
+## Key Features Implementation
+
+### 1. **3D Component System**
+- All components exist in 3D space with position, rotation, scale
+- Components have input/output pins with 3D positions
+- Visual representation separate from logical representation
+
+### 2. **Dynamic Wire System**
+- Wires connect pins between components
+- Support for curved/straight wire visualization
+- Automatic routing (optional)
+
+### 3. **Real-time Signal Simulation**
+- Event-driven signal propagation
+- Support for digital (0/1) and analog signals
+- Delay modeling for realistic timing
+
+### 4. **Custom Chip Creation**
+- Select multiple components → encapsulate into single chip
+- Define input/output interface
+- Hierarchical design support
+
+### 5. **Interactive Monitors**
+- Text display
+- Numeric values
+- Simple graphics/waveforms
+
+### 6. **Programmable Logic**
+- Script-based component behavior
+- Custom logic controllers
+- Extensible component types
+
+## Performance Optimizations
+
+1. **Spatial Partitioning**: Quadtree/Octree for fast neighbor queries
+2. **Parallel Simulation**: Multi-threaded signal propagation
+3. **Dirty Flag System**: Only update changed components
+4. **Memory Pooling**: Pre-allocate component storage
+5. **Level of Detail**: Simplify distant circuits
+
+## Getting Started
+
+```bash
+# Build the core simulation
+cd src
+g++ -std=c++17 -O3 -o simulator main.cpp core/*.cpp components/*.cpp simulation/*.cpp
+
+# Run web interface
+# Open web/index.html in browser
+```
+
+## Future Extensions
+
+- Python/C# scripting API via bindings (pybind11, C++/CLI)
+- VR/AR support for 3D circuit building
+- Multiplayer collaborative design
+- Export to Verilog/VHDL
+- Integration with Unity/Unreal Engine
